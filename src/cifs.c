@@ -353,7 +353,51 @@ CIFS_ERROR cifsUmountFileSystem(char* cifsFileName)
  */
 CIFS_ERROR cifsCreateFile(CIFS_NAME_TYPE filePath, CIFS_CONTENT_TYPE type)
 {
-	// TODO: implement
+    CIFS_ERROR error;
+	// TODO: implement check to ensure folder is "open"
+
+    // Check to make sure not a duplicate
+    if((error = doesFileExist(filePath)) == CIFS_NO_ERROR) {
+        return CIFS_DUPLICATE_ERROR;
+    }
+
+    CIFS_INDEX_TYPE blockRef = cifsFindFreeBlock(cifsContext->bitvector);
+    cifsSetBit(cifsContext->bitvector, blockRef);
+    CIFS_INDEX_TYPE blockIndexRef = cifsFindFreeBlock(cifsContext->bitvector);
+    cifsSetBit(cifsContext->bitvector, blockIndexRef);
+
+    CIFS_BLOCK_TYPE fileBlock;
+    fileBlock.type = type;
+    fileBlock.content.fileDescriptor.identifier = cifsContext->superblock->cifsNextUniqueIdentifier++;
+    strcpy(fileBlock.content.fileDescriptor.name, filePath);
+    fileBlock.content.fileDescriptor.accessRights = umask(fuseContext->umask);
+    fileBlock.content.fileDescriptor.owner = fuseContext->uid;
+    fileBlock.content.fileDescriptor.size = 0;
+    struct timespec time;
+    clock_gettime(CLOCK_MONOTONIC, &time);
+    fileBlock.content.fileDescriptor.creationTime = time.tv_sec;
+    fileBlock.content.fileDescriptor.lastAccessTime = time.tv_sec;
+    fileBlock.content.fileDescriptor.lastModificationTime = time.tv_sec;
+    fileBlock.content.fileDescriptor.block_ref = blockRef;
+    fileBlock.content.fileDescriptor.file_block_ref = blockIndexRef;
+    // TODO: change this: as of now only allows opening in the root folder
+    fileBlock.content.fileDescriptor.parent_block_ref = cifsContext->superblock->cifsRootNodeIndex;
+
+    CIFS_BLOCK_TYPE fileIndexBlock;
+    fileIndexBlock.type = CIFS_INDEX_CONTENT_TYPE;
+    for(int i = 0; i < CIFS_INDEX_SIZE; i++) {
+        fileIndexBlock.content.index[i] = CIFS_INVALID_INDEX;
+    }
+
+    // Write the blocks for the new file and file index
+    cifsWriteBlock((const unsigned char*) &fileBlock, blockRef);
+    cifsWriteBlock((const unsigned char*) &fileIndexBlock, blockIndexRef);
+
+    // Write the SB and BV to memory
+    writeBvSb();
+
+    // Increase the number of blocks
+    cifsContext->superblock->cifsNumberOfBlocks += 2;
 
 	return CIFS_NO_ERROR;
 }
@@ -703,7 +747,18 @@ char* cifsGenerateContent(int size)
  */
 int doesFileExist(char* filePath) {
 	// TODO: implement
-	return CIFS_NO_ERROR;
+    long hashValue = hash(filePath);
+    if(cifsContext->registry[hashValue] == NULL) {
+        return CIFS_NOT_FOUND_ERROR;
+    }
+    CIFS_REGISTRY entry = cifsContext->registry[hashValue];
+    while(entry) {
+        if(strcmp(entry->fileDescriptor.name, filePath) == 0) {
+            return CIFS_NO_ERROR;
+        }
+        entry = entry->next;
+    }
+	return CIFS_NOT_FOUND_ERROR;
 }
 
 void traverseDisk(CIFS_INDEX_TYPE* index, int size, char* path) {
@@ -729,9 +784,45 @@ void addToHashTable(long index, char* filePath, CIFS_FILE_DESCRIPTOR_TYPE* fd)
 
 void writeBvSb(void) {
 	// TODO: implement
+	// now we can write the blocks holding the in-memory version of the bitvector to the volume
 
-	// write bitvector (Bv)
-	
 	// write superblock (Sb)
-	
+    cifsWriteBlock((const unsigned char *) cifsContext->superblock, CIFS_SUPERBLOCK_INDEX);
+
+    // write bitvector (Bv)	
+	unsigned char block[CIFS_BLOCK_SIZE];
+	for (int i = 0; i < CIFS_SUPERBLOCK_INDEX; i++)	{
+		for (int j = 0; j < CIFS_BLOCK_SIZE; j++) {
+			block[j] = cifsContext->bitvector[i * CIFS_BLOCK_SIZE + j];
+        }
+        cifsWriteBlock((const unsigned char *) block, i);
+	}
+}
+
+/***
+ * Helper function to get the prefix path of a file name, eg. go from "/home/ben.txt" -> "/home/"
+ * Finds the address of the last slash, and then return substring in destination
+ */
+void getPrefixPath(const char* fileName, char* destination) {
+    char* slash = strrchr(fileName, '/');
+    if(slash != NULL) {
+        int len = slash - fileName + 1;
+        strncpy(destination, fileName, len);
+        destination[len] = '\0';
+    } else {
+        strcpy(destination, fileName);
+    }
+}
+
+
+void getPostfixPath(const char* fileName, char* destination) {
+    const char* slash = strrchr(fileName, '/');
+    size_t stringLen = strlen(fileName);
+    if (slash != NULL) {
+        int length = stringLen - (slash - fileName) + 1;
+        strncpy(destination, slash + 1, length);
+        destination[length] = '\0';
+    } else {
+        strcpy(destination, fileName);
+    }
 }

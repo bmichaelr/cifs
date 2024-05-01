@@ -161,6 +161,15 @@ void testStep1()
 	printf("\n\nTESTS FOR STEP #1\n=================\n\n");
 
 	// TODO: implement
+    CIFS_NAME_TYPE fileName;
+    strcpy(fileName, "test.txt");
+
+    CIFS_ERROR errorCode = cifsCreateFile(fileName, CIFS_FILE_CONTENT_TYPE);
+    if(errorCode != CIFS_NO_ERROR) {
+        printf("[STEP_1] :: FAILURE! Could not create file %s. Error -> %d\n", fileName, errorCode);
+    } else {
+        printf("[STEP_1] :: SUCCESS! Created file (%s) in root.\n", fileName); 
+    }
 }
 
 

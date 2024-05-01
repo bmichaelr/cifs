@@ -352,6 +352,8 @@ void traverseDisk(CIFS_INDEX_TYPE* index, int size, char* path);
 void addToHashTable(long index, char* filePath, CIFS_FILE_DESCRIPTOR_TYPE* fd);
 int doesFileExist(char* filePath);
 void writeBvSb(void);
+void getPrefixPath(const char*, char*);
+void getPostfixPath(const char*, char*);
 
 
 /***
