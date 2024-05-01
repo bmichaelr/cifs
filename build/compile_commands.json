@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/build",
+  "command": "/usr/bin/cc  -I/usr/include/fuse -I/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/inc  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs.dir/src/test_cifs.c.o -c /home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/src/test_cifs.c",
+  "file": "/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/src/test_cifs.c"
+},
+{
+  "directory": "/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/build",
+  "command": "/usr/bin/cc  -I/usr/include/fuse -I/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/inc  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs.dir/src/cifs.c.o -c /home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/src/cifs.c",
+  "file": "/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/src/cifs.c"
+},
+{
+  "directory": "/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/build",
+  "command": "/usr/bin/cc  -I/usr/include/fuse -I/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/inc  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/blockVolume.dir/src/blockVolume.c.o -c /home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/src/blockVolume.c",
+  "file": "/home/benjaminrmichael/Documents/CSUCI/COMP362/Week14/cifs/src/blockVolume.c"
+}
+]
